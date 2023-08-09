@@ -1,0 +1,38 @@
+{
+  "questions": [
+    {
+      "question": "ciao",
+      "synonyms": ["Ciao", "ehi", "ei"],
+      "answer": "Ciao benvenuto. sono ChatAI"
+    },
+    {
+      "question": "come stai?",
+      "answer": "bene, sto imparando nuove cose! tu invece?"
+    },
+    {
+      "question": "bene grazie",
+      "answer": "sono felice di leggere che stai bene"
+    },
+    {
+      "question": "Qual \u00c3\u00a8 la capitale dell'Italia?",
+      "answer": "La capitale dell'Italia \u00c3\u00a8 Roma."
+    },
+    {
+      "question": "Cos'\u00c3\u00a8 la fotosintesi?",
+      "answer": "La fotosintesi \u00c3\u00a8 il processo attraverso il quale le piante convertire la luce solare in energia chimica."
+    },
+    {
+      "question": "Cosa \u00c3\u00a8 la gravit\u00c3\u00a0?",
+      "answer": "La gravit\u00c3\u00a0 \u00c3\u00a8 una forza di attrazione tra gli oggetti con massa."
+    },
+    {
+      "question": "Qual \u00c3\u00a8 il numero di Avogadro?",
+      "synonyms": ["Avogadro", "avogadro"],
+      "answer": "Il numero di Avogadro \u00c3\u00a8 6.022 x 10^23, che rappresenta il numero di atomi o molecole in una mole di sostanza."
+    },
+    {
+      "question": "Qual \u00c3\u00a8 la formula chimica dell'acqua?",
+      "answer": "La formula chimica dell'acqua \u00c3\u00a8 H2O, che indica la presenza di due atomi di idrogeno e un atomo di ossigeno."
+    }
+  ]
+}
