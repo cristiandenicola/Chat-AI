@@ -1,15 +1,37 @@
 import json
-import requests
 import nltk
 import os
 from nltk.corpus import wordnet
-import spacy
 from difflib import get_close_matches
+import requests
+import spacy
+from nltk.corpus import wordnet
+import numpy as np
+from keybert import KeyBERT
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 if not os.path.exists('nltk_data'):
     nltk.download('wordnet')
     # Crea un file di segnalazione per indicare che il download è stato eseguito
     open('nltk_data', 'a').close()
+
+# Carica il modello e il tokenizer
+model_name = "gpt2"  # Puoi scegliere un modello diverso, ad esempio "gpt2-medium"
+model = AutoModelForCausalLM.from_pretrained(model_name)
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+def translate_to_eng(text):
+    url = f"http://api.mymemory.translated.net/get?q={text}&langpair=it|en"
+    response = requests.get(url)
+    translation = response.json()["responseData"]["translatedText"]
+    return translation
+
+def translate_to_it(text):
+    url = f"http://api.mymemory.translated.net/get?q={text}&langpair=en|it"
+    response = requests.get(url)
+    translation = response.json()["responseData"]["translatedText"]
+    return translation
 
 ## Funzione usata per caricare il json con all'interno le risposte del chatbot
 def load_knowledge_base(file_path: str) -> dict:
@@ -22,30 +44,50 @@ def save_knowledge_base(file_path: str, data: dict):
     with open(file_path, 'w') as file:
         json.dump(data, file, indent = 2)
 
-def translate_to_english(text):
-    url = f"http://api.mymemory.translated.net/get?q={text}&langpair=it|en"
-    response = requests.get(url)
-    translation = response.json()["responseData"]["translatedText"]
-    return translation
+def generate_synonyms(keyword_list):
+    synonyms_list = []
 
-def translate_to_italian(text):
-    url = f"http://api.mymemory.translated.net/get?q={text}&langpair=en|it"
-    response = requests.get(url)
-    translation = response.json()["responseData"]["translatedText"]
-    return translation
+    for word in keyword_list:
+        synonyms = []
+        synsets = wordnet.synsets(word)
+        for syn in synsets:
+            for lemma in syn.lemmas():
+                lemma_name = lemma.name()
+                synonyms.append(lemma_name.lower())
+                if len(synonyms) >= 3:
+                    break
+            if len(synonyms) >= 3:
+                break
+        synonyms_list.append(synonyms)
 
-def generate_synonyms_in_english(word):
-    synonyms = []
-    for syn in wordnet.synsets(word):
-        for lemma in syn.lemmas():
-            synonyms.append(lemma.name())
-    return synonyms
+    return synonyms_list
 
-def extract_keywords(text):
-    nlp = spacy.load("it_core_news_sm")
-    doc = nlp(text)
-    keywords = [token.text for token in doc if not token.is_stop and not token.is_punct and token.pos_ != 'VERB' and len(token.text) > 1]
-    return keywords
+def extract_keywords_BERT(text, top_n=5, language='en', max_features=1000, min_score=0.1):
+    # Crea un'istanza del modello KeyBERT
+    model = KeyBERT()
+    # Estrai le parole chiave
+    keywords = model.extract_keywords(text, keyphrase_ngram_range=(1, 1), top_n=top_n)
+
+    keyword_list = [keyword for keyword, score in keywords]
+
+    return keyword_list
+
+def generate_answer(prompt, max_length=100, temperature = 0.7, top_p = 0.9):
+    input_ids = tokenizer.encode(prompt, return_tensors="pt")
+    attention_mask = torch.ones(input_ids.shape, dtype=torch.long, device=input_ids.device)
+
+    # Genera la risposta utilizzando il modello con temperature e top_k sampling
+    output = model.generate(
+        input_ids,
+        attention_mask=attention_mask,
+        max_length=max_length,
+        num_return_sequences=1,
+        temperature=temperature,
+        top_p = top_p
+    )
+    response = tokenizer.decode(output[0], skip_special_tokens=True)
+    response_it = translate_to_it(response)
+    return response_it
 
 ## Funzione usata per trovare il match migliore tra la domanda fatta dall'utente e le risposte a disposizone del modello
 def find_best_match(user_question: str, questions: list[str], knowledge_base: dict) -> str | None:

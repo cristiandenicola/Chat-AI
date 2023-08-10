@@ -6,27 +6,13 @@ def chat_bot():
 
     while True:
         user_input: str = input(Fore.LIGHTBLUE_EX +'You: ' + Style.RESET_ALL)
+        input_eng = functions.translate_to_eng(user_input)
 
-        if user_input.lower() == 'quit':
+        if input_eng.lower() == 'quit':
+            print(f'{Fore.LIGHTRED_EX}ChatAI:{Style.RESET_ALL} Goodbye')
             break
-        
-        best_match: str | None = functions.find_best_match(user_input, [q["question"] for q in knowledge_base["questions"]], knowledge_base)
-        #implementare ricerca anche sulle keywords
-
-        if best_match:
-            answer: str = functions.get_answer_for_question(best_match, knowledge_base)
-            print(f'{Fore.LIGHTRED_EX}Bot:{Style.RESET_ALL} {answer}')
-        else:
-            print(f'{Fore.LIGHTRED_EX}Bot:{Style.RESET_ALL} I don\'t know the answer. Can you teach me?')
-            new_answer: str = input('Type the answer or "skip" to skip: ')
-
-            if new_answer.lower() != 'skip':
-                #estrazione keywords
-                #traduzione keywords
-                #ricerca sinonimi keyws in eng
-                #traduzione sin eng in ita
-                #salvataggio
-                print()
+        response = functions.generate_answer(input_eng)
+        print(f'{Fore.LIGHTRED_EX}ChatAI:{Style.RESET_ALL} {response}')
 
 if __name__ == '__main__':
     init(autoreset=True)
